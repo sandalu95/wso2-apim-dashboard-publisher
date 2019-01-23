@@ -1,0 +1,40 @@
+{
+  "name" : "APIM APP CREATED",
+  "id" : "APPCreated",
+  "thumbnailURL" : "",
+  "configs" : {
+    "pubsub" : {
+      "types" : ["subscriber"]
+    },
+
+
+    "providerConfig" : {
+      "configs" : {
+        "type" : "SiddhiStoreDataProvider",
+        "config" : {
+          "siddhiApp" : "@App:name('APPcreatedsiddhi') @primaryKey('APPLICATION_ID') @store(type=\"rdbms\" , datasource=\"AM_DB\") define table AM_APPLICATION(APPLICATION_ID int,NAME string,SUBSCRIBER_ID int,APPLICATION_TIER string,CALLBACK_URL string,DESCRIPTION string,APPLICATION_STATUS string,GROUP_ID string,CREATED_BY string,CREATED_TIME string,UPDATED_BY string,UPDATED_TIME string,UUID string,TOKEN_TYPE string);",
+          "queryData" : {
+            "query" : "from AM_APPLICATION select CREATED_TIME, count(APPLICATION_ID) as count group by CREATED_TIME;"
+          },
+          "publishingInterval" : 60
+        }
+      }
+
+    },
+    "options" : [
+      {
+        "id" : "header",
+        "title" : "Header",
+        "type" : {
+          "name" : "BOOLEAN",
+          "possibleValues" : [
+            true,
+            false
+          ]
+        },
+        "defaultValue" : true
+      }
+    ]
+
+  }
+}
