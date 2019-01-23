@@ -1,0 +1,9 @@
+{
+  "en": {
+    "config.error.heading": "Configuration Error !",
+    "config.error.body": "Cannot fetch provider configuration for SUBSCRIPTIONS widget",
+    "widget.heading": "TOTAL SUBSCRIPTIONS",
+    "within.week.text": "WITHIN LAST WEEK ",
+    "overtime.btn.text": "Overtime Analysis"
+  }
+}
