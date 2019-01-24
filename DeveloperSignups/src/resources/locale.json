@@ -1,0 +1,9 @@
+{
+  "en": {
+    "config.error.heading": "Configuration Error !",
+    "config.error.body": "Cannot fetch provider configuration for DEVELOPER SIGNUPS widget",
+    "widget.heading": "TOTAL SIGNUPS",
+    "within.week.text": "WITHIN LAST WEEK ",
+    "overtime.btn.text": "Overtime Analysis"
+  }
+}
