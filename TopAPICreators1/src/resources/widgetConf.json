@@ -7,7 +7,6 @@
       "types": ["subscriber"]
     },
 
-
     "providerConfig" : {
       "configs": {
         "type": "SiddhiStoreDataProvider",

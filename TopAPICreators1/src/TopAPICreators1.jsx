@@ -8,7 +8,6 @@ import TextField from '@material-ui/core/TextField';
 import { VictoryPie, VictoryLegend, VictoryTooltip } from 'victory';
 import { defineMessages, IntlProvider, FormattedMessage } from 'react-intl';
 import localeJSON from './resources/locale.json';
-import Constants from './Constants';
 import CustomTable from './CustomTable';
 
 const darkTheme = createMuiTheme({
@@ -22,6 +21,8 @@ const lightTheme = createMuiTheme({
         type: 'light',
     },
 });
+
+const queryParamKey = 'apiCreators';
 
 /**
  * Language
@@ -106,7 +107,6 @@ class TopAPICreators1 extends Widget {
     }
 
     assembleQuery() {
-        const { queryParamKey } = Constants;
         const queryParam = super.getGlobalState(queryParamKey);
         let limit = 5;
 
@@ -150,12 +150,10 @@ class TopAPICreators1 extends Widget {
     }
 
     setQueryParam(limit) {
-        const { queryParamKey } = Constants;
         super.setGlobalState(queryParamKey, { limit });
     }
 
     handleChange(event) {
-        const { queryParamKey } = Constants;
         const queryParam = super.getGlobalState(queryParamKey);
         this.setQueryParam(event.target.value);
         this.setState({ limit: queryParam.limit });
