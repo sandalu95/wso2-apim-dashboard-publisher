@@ -1,13 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
-import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
@@ -17,8 +14,18 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Collapse from '@material-ui/core/Collapse';
+import { withStyles } from '@material-ui/core/styles';
+import { defineMessages, IntlProvider, FormattedMessage } from 'react-intl';
+import localeJSON from './resources/locale.json';
+import CustomTableHead from './CustomTableHead';
 
-
+/**
+ * Compare two values and return the result
+ * @param {object} a - data field
+ * @param {object} b - data field
+ * @param {string} orderBy - column to sort table
+ * @return {number} - value related to the comparision of two data fields
+ * */
 function desc(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
         return -1;
@@ -29,6 +36,12 @@ function desc(a, b, orderBy) {
     return 0;
 }
 
+/**
+ * stabilize the data set and sort the data fields
+ * @param {object} array - data set
+ * @param {object} cmp - method to sort
+ * @return {object} - df
+ * */
 function stableSort(array, cmp) {
     const stabilizedThis = array.map((el, index) => [el, index]);
     stabilizedThis.sort((a, b) => {
@@ -39,65 +52,28 @@ function stableSort(array, cmp) {
     return stabilizedThis.map(el => el[0]);
 }
 
+/**
+ * Set the value received from desc() according to 'order'
+ * @param {string} order - desc or asc
+ * @param {string} orderBy - column to sort table
+ * @return {object} - vfdve
+ * */
 function getSorting(order, orderBy) {
     return order === 'desc' ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
 }
 
-const rows = [
-    {
-        id: 'creator', numeric: false, disablePadding: false, label: 'CREATOR',
-    },
-    {
-        id: 'apicount', numeric: true, disablePadding: false, label: 'API COUNT',
-    },
-];
+/**
+ * Language
+ * @type {string}
+ */
+const language = (navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage;
 
-class CustomTableHead extends React.Component {
-    createSortHandler = property => (event) => {
-        this.props.onRequestSort(event, property);
-    };
-
-    render() {
-        const { order, orderBy } = this.props;
-
-        return (
-            <TableHead>
-                <TableRow>
-                    {rows.map((row) => {
-                        return (
-                            <TableCell
-                                key={row.id}
-                                numeric={row.numeric}
-                                padding={row.disablePadding ? 'none' : 'default'}
-                                sortDirection={orderBy === row.id ? order : false}
-                            >
-                                <Tooltip
-                                    title='Sort'
-                                    placement={row.numeric ? 'bottom-end' : 'bottom-start'}
-                                    enterDelay={300}
-                                >
-                                    <TableSortLabel
-                                        active={orderBy === row.id}
-                                        direction={order}
-                                        onClick={this.createSortHandler(row.id)}
-                                    >
-                                        {row.label}
-                                    </TableSortLabel>
-                                </Tooltip>
-                            </TableCell>
-                        );
-                    }, this)}
-                </TableRow>
-            </TableHead>
-        );
-    }
-}
-
-CustomTableHead.propTypes = {
-    onRequestSort: PropTypes.func.isRequired,
-    order: PropTypes.string.isRequired,
-    orderBy: PropTypes.string.isRequired,
-};
+/**
+ * Language without region code
+ */
+const languageWithoutRegionCode = language.toLowerCase().split(/[_-]+/)[0];
+const locale = (languageWithoutRegionCode || language || 'en');
+const localeMessages = defineMessages(localeJSON[locale]) || {};
 
 const toolbarStyles = theme => ({
     root: {
@@ -149,16 +125,16 @@ let CustomTableToolbar = (props) => {
         >
             <div className={classes.title}>
                 <Typography variant='h6' id='tableTitle'>
-                    TOP API CREATORS
+                    <FormattedMessage id='widget.heading' defaultMessage='TOP API CREATORS' />
                 </Typography>
             </div>
             <div className={classes.actions}>
-                <Tooltip title='Filter By'>
+                <Tooltip title={<FormattedMessage id='filter.label.title' defaultMessage='Filter By' />}>
                     <IconButton
                         className={classes.expand}
                         onClick={handleExpandClick}
                         aria-expanded={expanded}
-                        aria-label='Filter By'
+                        aria-label={<FormattedMessage id='filter.label.title' defaultMessage='Filter By' />}
                     >
                         <FilterListIcon />
                     </IconButton>
@@ -169,7 +145,7 @@ let CustomTableToolbar = (props) => {
                     <TextField
                         id='column-select'
                         select
-                        label='Column Name'
+                        label={<FormattedMessage id='filter.column.menu.heading' defaultMessage='Column Name' />}
                         className={classes.textField}
                         value={filterColumn}
                         onChange={handleColumnSelect}
@@ -180,12 +156,16 @@ let CustomTableToolbar = (props) => {
                         }}
                         margin='normal'
                     >
-                        <MenuItem value='creator'>Creator</MenuItem>
-                        <MenuItem value='apicount'>API Count</MenuItem>
+                        <MenuItem value='creator'>
+                            <FormattedMessage id='table.heading.creator' defaultMessage='CREATOR' />
+                        </MenuItem>
+                        <MenuItem value='apicount'>
+                            <FormattedMessage id='table.heading.apicount' defaultMessage='API COUNT' />
+                        </MenuItem>
                     </TextField>
                     <TextField
                         id='query-search'
-                        label='Search field'
+                        label={<FormattedMessage id='filter.search.placeholder' defaultMessage='Search Field' />}
                         type='search'
                         value={query}
                         className={classes.textField}
@@ -199,13 +179,17 @@ let CustomTableToolbar = (props) => {
 };
 
 CustomTableToolbar.propTypes = {
-    classes: PropTypes.object.isRequired,
+    classes: PropTypes.instanceOf(Object),
     expanded: PropTypes.string.isRequired,
     filterColumn: PropTypes.string.isRequired,
     query: PropTypes.string.isRequired,
     handleExpandClick: PropTypes.func.isRequired,
     handleColumnSelect: PropTypes.func.isRequired,
     handleQueryChange: PropTypes.func.isRequired,
+};
+
+CustomTableToolbar.defaultProps = {
+    classes: {},
 };
 
 CustomTableToolbar = withStyles(toolbarStyles)(CustomTableToolbar);
@@ -228,58 +212,59 @@ const styles = theme => ({
             padding: 0,
         },
     },
-    paginationtoolbar: {
+    paginationToolbar: {
         height: 56,
         minHeight: 56,
         padding: '0 5%',
     },
-    paginationcaption: {
+    paginationCaption: {
         flexShrink: 0,
     },
-    paginationselectRoot: {
+    paginationSelectRoot: {
         marginRight: '10px',
     },
-    paginationselect: {
+    paginationSelect: {
         paddingLeft: 8,
         paddingRight: 16,
     },
-    paginationselectIcon: {
+    paginationSelectIcon: {
         top: 1,
     },
-    paginationinput: {
+    paginationInput: {
         color: 'inherit',
         fontSize: 'inherit',
         flexShrink: 0,
     },
-    paginationmenuItem: {
+    paginationMenuItem: {
         backgroundColor: theme.palette.type === 'light' ? '#fff' : '#162638',
     },
-    paginationactions: {
+    paginationActions: {
         marginLeft: 0,
     },
 });
 
+/**
+ * React Component for API Created Count
+ */
 class CustomTable extends React.Component {
-    state = {
-        order: 'desc',
-        orderBy: 'apicount',
-        data: [],
-        page: 0,
-        rowsPerPage: 5,
-        expanded: false,
-        filterColumn: 'creator',
-        query: '',
-    };
+     state = {
+         data: [],
+         page: 0,
+         rowsPerPage: 5,
+         orderBy: 'apicount',
+         order: 'desc',
+         expanded: false,
+         filterColumn: 'creator',
+         query: '',
+     };
 
     handleRequestSort = (event, property) => {
-        const orderBy = property;
-        let order = 'desc';
-
-        if (this.state.orderBy === property && this.state.order === 'desc') {
-            order = 'asc';
+        const { order, orderBy } = this.state;
+        let orderNew = 'desc';
+        if (orderBy === property && order === 'desc') {
+            orderNew = 'asc';
         }
-
-        this.setState({ order, orderBy });
+        this.setState({ order: orderNew, orderBy: property });
     };
 
     handleChangePage = (event, page) => {
@@ -302,104 +287,114 @@ class CustomTable extends React.Component {
         this.setState({ query: event.target.value });
     };
 
+    /**
+     * renders the Custom Table
+     * @return {ReactElement} customTable
+     */
     render() {
         const { classes, tableData } = this.props;
+        const { query, expanded, filterColumn } = this.state;
         let counter = 0;
-        const ddata = [];
-        let creator = '';
-        let apicount = 0;
-        const lowerCaseQuery = this.state.query.toLowerCase();
+        const dataNew = [];
+        const lowerCaseQuery = query.toLowerCase();
 
         tableData.forEach((dataUnit) => {
             counter += 1;
-            creator = dataUnit[0];
-            apicount = dataUnit[1];
-            ddata.push({ id: counter, creator, apicount });
+            dataNew.push({ id: counter, creator: dataUnit[0], apicount: dataUnit[1] });
         });
-
-        // this.state.data = ddata;
-        this.state.data = this.state.query ? ddata.filter(x => x[this.state.filterColumn].toString().toLowerCase().includes(lowerCaseQuery)) : ddata;
+        this.state.data = query
+            ? dataNew.filter(x => x[filterColumn].toString().toLowerCase().includes(lowerCaseQuery))
+            : dataNew;
         const {
             data, order, orderBy, rowsPerPage, page,
         } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
         return (
-            <Paper className={classes.root}>
-                <CustomTableToolbar
-                    expanded={this.state.expanded}
-                    filterColumn={this.state.filterColumn}
-                    query={this.state.query}
-                    handleExpandClick={this.handleExpandClick}
-                    handleColumnSelect={this.handleColumnSelect}
-                    handleQueryChange={this.handleQueryChange}
-                />
-                <div className={classes.tableWrapper}>
-                    <Table className={classes.table} aria-labelledby='tableTitle'>
-                        <CustomTableHead
-                            order={order}
-                            orderBy={orderBy}
-                            onRequestSort={this.handleRequestSort}
-                        />
-                        <TableBody>
-                            {stableSort(data, getSorting(order, orderBy))
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((n) => {
-                                    return (
-                                        <TableRow
-                                            hover
-                                            tabIndex={-1}
-                                            key={n.id}
-                                        >
-                                            <TableCell component='th' scope='row'>
-                                                {n.creator}
-                                            </TableCell>
-                                            <TableCell numeric style={{ paddingRight: '10%' }}>{n.apicount}</TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            {emptyRows > 0 && (
-                                <TableRow style={{ height: 49 * emptyRows }}>
-                                    <TableCell colSpan={6} />
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 20, 25, 50, 100]}
-                    component='div'
-                    count={data.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    backIconButtonProps={{
-                        'aria-label': 'Previous Page',
-                    }}
-                    nextIconButtonProps={{
-                        'aria-label': 'Next Page',
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    classes={{
-                        root: classes.paginationRoot,
-                        toolbar: classes.paginationtoolbar,
-                        caption: classes.paginationcaption,
-                        selectRoot: classes.paginationselectRoot,
-                        select: classes.paginationselect,
-                        selectIcon: classes.paginationselectIcon,
-                        input: classes.paginationinput,
-                        menuItem: classes.paginationmenuItem,
-                        actions: classes.paginationactions,
-                    }}
-                />
-            </Paper>
+            <IntlProvider locale={language} messages={localeMessages}>
+                <Paper className={classes.root}>
+                    <CustomTableToolbar
+                        expanded={expanded}
+                        filterColumn={filterColumn}
+                        query={query}
+                        handleExpandClick={this.handleExpandClick}
+                        handleColumnSelect={this.handleColumnSelect}
+                        handleQueryChange={this.handleQueryChange}
+                    />
+                    <div className={classes.tableWrapper}>
+                        <Table className={classes.table} aria-labelledby='tableTitle'>
+                            <CustomTableHead
+                                order={order}
+                                orderBy={orderBy}
+                                onRequestSort={this.handleRequestSort}
+                            />
+                            <TableBody>
+                                {stableSort(data, getSorting(order, orderBy))
+                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    .map((n) => {
+                                        return (
+                                            <TableRow
+                                                hover
+                                                tabIndex={-1}
+                                                key={n.id}
+                                            >
+                                                <TableCell component='th' scope='row'>
+                                                    {n.creator}
+                                                </TableCell>
+                                                <TableCell
+                                                    numeric
+                                                    style={{
+                                                        paddingRight: '10%',
+                                                    }}
+                                                >
+                                                    {n.apicount}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                {emptyRows > 0 && (
+                                    <TableRow style={{ height: 49 * emptyRows }}>
+                                        <TableCell colSpan={6} />
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 20, 25, 50, 100]}
+                        component='div'
+                        count={data.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        backIconButtonProps={{
+                            'aria-label': 'Previous Page',
+                        }}
+                        nextIconButtonProps={{
+                            'aria-label': 'Next Page',
+                        }}
+                        onChangePage={this.handleChangePage}
+                        onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                        classes={{
+                            root: classes.paginationRoot,
+                            toolbar: classes.paginationToolbar,
+                            caption: classes.paginationCaption,
+                            selectRoot: classes.paginationSelectRoot,
+                            select: classes.paginationSelect,
+                            selectIcon: classes.paginationSelectIcon,
+                            input: classes.paginationInput,
+                            menuItem: classes.paginationMenuItem,
+                            actions: classes.paginationActions,
+                        }}
+                    />
+                </Paper>
+            </IntlProvider>
         );
     }
 }
 
 CustomTable.propTypes = {
-    classes: PropTypes.object.isRequired,
-    tableData: PropTypes.object.isRequired,
+    classes: PropTypes.instanceOf(Object).isRequired,
+    tableData: PropTypes.instanceOf(Object).isRequired,
 };
 
 export default withStyles(styles)(CustomTable);

@@ -2,8 +2,12 @@
   "en": {
     "config.error.heading": "Configuration Error !",
     "config.error.body": "Cannot fetch provider configuration for API CREATED widget",
-    "widget.heading": "TOTAL API COUNT",
-    "within.week.text": "WITHIN LAST WEEK ",
-    "overtime.btn.text": "Overtime Analysis"
+    "widget.heading": "TOP API CREATORS",
+    "table.heading.creator": "CREATOR",
+    "table.heading.apicount": "API COUNT",
+    "sort.label.title": "Sort",
+    "filter.label.title": "Filter By",
+    "filter.column.menu.heading": "Column Name",
+    "filter.search.placeholder": "Search Field"
   }
 }

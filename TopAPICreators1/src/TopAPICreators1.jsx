@@ -1,8 +1,7 @@
 import React from 'react';
 import Widget from '@wso2-dashboards/widget';
-import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { Scrollbars } from 'react-custom-scrollbars';
-import amber from '@material-ui/core/colors/amber';
+import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
@@ -15,20 +14,12 @@ import CustomTable from './CustomTable';
 const darkTheme = createMuiTheme({
     palette: {
         type: 'dark',
-        secondary: amber,
-    },
-    typography: {
-        useNextVariants: true,
     },
 });
 
 const lightTheme = createMuiTheme({
     palette: {
         type: 'light',
-        secondary: amber,
-    },
-    typography: {
-        useNextVariants: true,
     },
 });
 
@@ -48,15 +39,15 @@ class TopAPICreators1 extends Widget {
         super(props);
 
         this.styles = {
-            textField: {
-                marginLeft: 8,
-                marginRight: 8,
-                width: 200,
-            },
             headingWrapper: {
                 height: '10%',
                 margin: 'auto',
                 width: '90%',
+            },
+            formWrapper: {
+                width: '90%',
+                height: '15%',
+                margin: 'auto',
             },
             form: {
                 width: '30%',
@@ -65,10 +56,10 @@ class TopAPICreators1 extends Widget {
                 display: 'flex',
                 flexWrap: 'wrap',
             },
-            formWrapper: {
-                width: '90%',
-                height: '15%',
-                margin: 'auto',
+            textField: {
+                marginLeft: 8,
+                marginRight: 8,
+                width: 200,
             },
         };
 
@@ -191,7 +182,7 @@ class TopAPICreators1 extends Widget {
                         letterSpacing: 1.5,
                     }}
                     >
-                        TOP API CREATORS
+                        <FormattedMessage id='widget.heading' defaultMessage='TOP API CREATORS' />
                     </h3>
                 </div>
                 <div style={this.styles.formWrapper}>
@@ -264,36 +255,52 @@ class TopAPICreators1 extends Widget {
 
 
     render() {
+        const themeName = this.props.muiTheme.name;
+        const { localeMessages } = this.state;
+
         if (this.state.faultyProviderConfig === true) {
             return (
-                <div
-                    style={{
-                        margin: 'auto',
-                        width: '50%',
-                        marginTop: 100,
-                    }}
-                >
-                    <Paper elevation={1} style={{ padding: 30, backgroundColor: amber[300] }}>
-                        <Typography variant='h5' component='h3'>
-                            Not Configured
-                        </Typography>
-                        <Typography component='p'>
-                            Refer our documentation to correctly configure API Manager Analytics
-                        </Typography>
-                    </Paper>
-                </div>
+                <IntlProvider locale={language} messages={localeMessages}>
+                    <div
+                        style={{
+                            margin: 'auto',
+                            width: '50%',
+                            marginTop: '20%',
+                        }}
+                    >
+                        <Paper
+                            elevation={1}
+                            style={{
+                                padding: '5%',
+                                border: '2px solid #4555BB',
+                            }}
+                        >
+                            <Typography variant='h5' component='h3'>
+                                <FormattedMessage id='config.error.heading' defaultMessage='Configuration Error !' />
+                            </Typography>
+                            <Typography component='p'>
+                                <FormattedMessage
+                                    id='config.error.body'
+                                    defaultMessage='Cannot fetch provider configuration for API CREATED widget'
+                                />
+                            </Typography>
+                        </Paper>
+                    </div>
+                </IntlProvider>
             );
         } else {
             return (
-                <MuiThemeProvider
-                    theme={this.props.muiTheme.name === 'dark' ? darkTheme : lightTheme}
-                >
-                    <Scrollbars
-                        style={{ height: this.state.height }}
+                <IntlProvider locale={language} messages={localeMessages}>
+                    <MuiThemeProvider
+                        theme={themeName === 'dark' ? darkTheme : lightTheme}
                     >
-                        {this.getApiCreators()}
-                    </Scrollbars>
-                </MuiThemeProvider>
+                        <Scrollbars
+                            style={{ height: this.state.height }}
+                        >
+                            {this.getApiCreators()}
+                        </Scrollbars>
+                    </MuiThemeProvider>
+                </IntlProvider>
             );
         }
     }
