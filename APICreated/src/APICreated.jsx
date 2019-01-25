@@ -1,3 +1,23 @@
+
+/*
+ *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ *
+ */
+
 import React from 'react';
 import Widget from '@wso2-dashboards/widget';
 import Moment from 'moment';
@@ -27,9 +47,16 @@ const language = (navigator.languages && navigator.languages[0]) || navigator.la
 const languageWithoutRegionCode = language.toLowerCase().split(/[_-]+/)[0];
 
 /**
- * React Component for API Created Count
+ * Create React Component for API Created Count
+ * @class APICreated
+ * @extends {Widget}
  */
 class APICreated extends Widget {
+    /**
+     * Creates an instance of APICreated.
+     * @param {any} props @inheritDoc
+     * @memberof APICreated
+     */
     constructor(props) {
         super(props);
 
@@ -117,8 +144,9 @@ class APICreated extends Widget {
     }
 
     /**
-     * formats data retrieved and loads to the widget
+     * Format data retrieved and loads to the widget
      * @param {object} message - data retrieved
+     * @memberof APICreated
      * */
     handleDataReceived(message) {
         let totalCount = 0;
@@ -147,8 +175,9 @@ class APICreated extends Widget {
     }
 
     /**
-     * renders the API Created Count widget
-     * @return {ReactElement} widgetBody
+     * @inheritDoc
+     * @returns {ReactElement} Render the API Created Count widget
+     * @memberof APICreated
      */
     render() {
         const themeName = this.props.muiTheme.name;
