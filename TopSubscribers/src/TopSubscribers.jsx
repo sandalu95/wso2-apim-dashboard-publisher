@@ -48,7 +48,7 @@ const lightTheme = createMuiTheme({
     },
 });
 
-const queryParamKey = 'apiCreators';
+const queryParamKey = 'subscribers';
 
 /**
  * Language
@@ -62,15 +62,15 @@ const language = (navigator.languages && navigator.languages[0]) || navigator.la
 const languageWithoutRegionCode = language.toLowerCase().split(/[_-]+/)[0];
 
 /**
- * Create React Component for Top APP Creators
- * @class TopAPPCreators
+ * Create React Component for Top Subscribers
+ * @class TopSubscribers
  * @extends {Widget}
  */
-class TopAPPCreators extends Widget {
+class TopSubscribers extends Widget {
     /**
-     * Creates an instance of TopAPPCreators.
+     * Creates an instance of TopSubscribers.
      * @param {any} props @inheritDoc
-     * @memberof TopAPPCreators
+     * @memberof TopSubscribers
      */
     constructor(props) {
         super(props);
@@ -143,7 +143,7 @@ class TopAPPCreators extends Widget {
 
     /**
      * Formats the siddhi query using selected options
-     * @memberof TopAPPCreators
+     * @memberof TopSubscribers
      * */
     assembleQuery() {
         const queryParam = super.getGlobalState(queryParamKey);
@@ -169,7 +169,7 @@ class TopAPPCreators extends Widget {
     /**
      * Formats data retrieved and loads to the widget
      * @param {object} message - data retrieved
-     * @memberof TopAPPCreators
+     * @memberof TopSubscribers
      * */
     handleDataReceived(message) {
         if (message.data) {
@@ -196,7 +196,7 @@ class TopAPPCreators extends Widget {
     /**
      * Updates query param values
      * @param {number} limit - data limitation value
-     * @memberof TopAPPCreators
+     * @memberof TopSubscribers
      * */
     setQueryParam(limit) {
         super.setGlobalState(queryParamKey, { limit });
@@ -205,7 +205,7 @@ class TopAPPCreators extends Widget {
     /**
      * Handle Select Change
      * @param {Event} event - listened event
-     * @memberof TopAPPCreators
+     * @memberof TopSubscribers
      * */
     handleChange(event) {
         const queryParam = super.getGlobalState(queryParamKey);
@@ -216,11 +216,11 @@ class TopAPPCreators extends Widget {
     }
 
     /**
-     * Return the content of TopAPPCreators widget
-     * @returns {ReactElement} Render the content of Top APP Creators widget
-     * @memberof TopAPPCreators
+     * Return the content of TopSubscribers widget
+     * @returns {ReactElement} Render the content of Top Subscribers widget
+     * @memberof TopSubscribers
      * */
-    getAppCreators() {
+    getSubscribers() {
         const themeName = this.props.muiTheme.name;
 
         return (
@@ -241,7 +241,7 @@ class TopAPPCreators extends Widget {
                         letterSpacing: 1.5,
                     }}
                     >
-                        <FormattedMessage id='widget.heading' defaultMessage='TOP APP CREATORS' />
+                        <FormattedMessage id='widget.heading' defaultMessage='TOP SUBSCRIBERS' />
                     </h3>
                 </div>
                 <div style={this.styles.formWrapper}>
@@ -314,8 +314,8 @@ class TopAPPCreators extends Widget {
 
     /**
      * @inheritDoc
-     * @returns {ReactElement} Render the Top APP Creators widget
-     * @memberof TopAPPCreators
+     * @returns {ReactElement} Render the Top Subscribers widget
+     * @memberof TopSubscribers
      */
     render() {
         const themeName = this.props.muiTheme.name;
@@ -344,7 +344,7 @@ class TopAPPCreators extends Widget {
                             <Typography component='p'>
                                 <FormattedMessage
                                     id='config.error.body'
-                                    defaultMessage='Cannot fetch provider configuration for TOP APP CREATORS widget'
+                                    defaultMessage='Cannot fetch provider configuration for TOP SUBSCRIBERS widget'
                                 />
                             </Typography>
                         </Paper>
@@ -360,7 +360,7 @@ class TopAPPCreators extends Widget {
                         <Scrollbars
                             style={{ height: this.state.height }}
                         >
-                            {this.getAppCreators()}
+                            {this.getSubscribers()}
                         </Scrollbars>
                     </MuiThemeProvider>
                 </IntlProvider>
@@ -369,4 +369,4 @@ class TopAPPCreators extends Widget {
     }
 }
 
-global.dashboard.registerWidget('TopAPPCreators', TopAPPCreators);
+global.dashboard.registerWidget('TopSubscribers', TopSubscribers);
