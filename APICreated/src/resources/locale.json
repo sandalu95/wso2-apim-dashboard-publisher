@@ -2,8 +2,8 @@
   "en": {
     "config.error.heading": "Configuration Error !",
     "config.error.body": "Cannot fetch provider configuration for API CREATED widget",
+    "overtime.btn.text": "Overtime Analysis",
     "widget.heading": "TOTAL API COUNT",
-    "within.week.text": "WITHIN LAST WEEK ",
-    "overtime.btn.text": "Overtime Analysis"
+    "within.week.text": "WITHIN LAST WEEK "
   }
 }

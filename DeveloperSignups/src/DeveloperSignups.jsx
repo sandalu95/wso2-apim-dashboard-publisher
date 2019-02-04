@@ -176,9 +176,9 @@ class DeveloperSignups extends Widget {
      */
     render() {
         const themeName = this.props.muiTheme.name;
-        const { localeMessages } = this.state;
+        const { localeMessages, faultyProviderConf, totalCount, weekCount } = this.state;
 
-        if (this.state.faultyProviderConf === true) {
+        if (faultyProviderConf === true) {
             return (
                 <IntlProvider locale={language} messages={localeMessages}>
                     <div
@@ -253,15 +253,15 @@ class DeveloperSignups extends Widget {
                                     color: themeName === 'dark' ? '#fff' : '#e01171',
                                 }}
                             >
-                                {this.state.totalCount}
+                                {totalCount}
                             </h1>
-                            <h3 style={this.styles.typeText}>{this.state.totalCount === '01' ? 'SIGNUP' : 'SIGNUPS'}</h3>
+                            <h3 style={this.styles.typeText}>{totalCount === '01' ? 'SIGNUP' : 'SIGNUPS'}</h3>
                             <p style={this.styles.weekCount}>
                                 [
                                 {' '}
-                                {this.state.weekCount}
+                                {weekCount}
                                 {' '}
-                                {this.state.weekCount === '01' ? 'SIGNUP' : 'SIGNUPS'}
+                                {weekCount === '01' ? 'SIGNUP' : 'SIGNUPS'}
                                 {' '}
                                 <FormattedMessage id='within.week.text' defaultMessage='WITHIN LAST WEEK ' />
                                 ]

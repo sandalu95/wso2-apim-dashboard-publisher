@@ -181,9 +181,9 @@ class APPCreated extends Widget {
      */
     render() {
         const themeName = this.props.muiTheme.name;
-        const { localeMessages } = this.state;
+        const { localeMessages, faultyProviderConf, totalCount, weekCount } = this.state;
 
-        if (this.state.faultyProviderConf === true) {
+        if (faultyProviderConf === true) {
             return (
                 <IntlProvider locale={language} messages={localeMessages}>
                     <div
@@ -260,17 +260,17 @@ class APPCreated extends Widget {
                                     color: themeName === 'dark' ? '#fff' : '#040f96',
                                 }}
                             >
-                                {this.state.totalCount}
+                                {totalCount}
                             </h1>
                             <h3 style={this.styles.typeText}>
-                                {this.state.totalCount === '01' ? 'APP' : 'APPS'}
+                                {totalCount === '01' ? 'APP' : 'APPS'}
                             </h3>
                             <p style={this.styles.weekCount}>
                                 [
                                 {' '}
-                                {this.state.weekCount}
+                                {weekCount}
                                 {' '}
-                                {this.state.weekCount === '01' ? 'APP' : 'APPS'}
+                                {weekCount === '01' ? 'APP' : 'APPS'}
                                 {' '}
                                 <FormattedMessage id='within.week.text' defaultMessage='WITHIN LAST WEEK ' />
                                 ]
