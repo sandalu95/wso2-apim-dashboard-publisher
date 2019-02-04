@@ -1,0 +1,18 @@
+{
+  "en": {
+    "all.menuItem": "All",
+    "back.btn": "BACK",
+    "config.error.body": "Cannot fetch provider configuration for API Created Overtime widget",
+    "config.error.heading": "Configuration Error !",
+    "createdBy.label": "Created By",
+    "filter.column.menu.heading": "Column Name",
+    "filter.label.title": "Filter By",
+    "filter.search.placeholder": "Search Field",
+    "me.menuItem": "Me",
+    "sort.label.title": "Sort",
+    "table.heading": "API CREATED TIMES",
+    "table.heading.apiname": "API NAME",
+    "table.heading.createdtime": "CREATED TIME",
+    "widget.heading": "API CREATED OVER TIME"
+  }
+}
