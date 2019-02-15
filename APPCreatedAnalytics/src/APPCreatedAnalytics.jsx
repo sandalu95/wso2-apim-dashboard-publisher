@@ -32,11 +32,14 @@ import InputLabel from '@material-ui/core/InputLabel';
 import Input from '@material-ui/core/Input';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import {
     VictoryAxis, VictoryLabel, VictoryLine, VictoryTooltip,
 } from 'victory';
-import { defineMessages, IntlProvider, FormattedMessage } from 'react-intl';
-import localeJSON from './resources/locale.json';
+import Axios from 'axios';
+import {
+    addLocaleData, defineMessages, IntlProvider, FormattedMessage,
+} from 'react-intl';
 import CustomTable from './CustomTable';
 
 const darkTheme = createMuiTheme({
@@ -140,6 +143,10 @@ class APPCreatedAnalytics extends Widget {
                 color: '#fff',
                 marginTop: '3%',
             },
+            loadingIcon: {
+                margin: 'auto',
+                display: 'block',
+            },
         };
 
         this.state = {
@@ -157,6 +164,7 @@ class APPCreatedAnalytics extends Widget {
             tableData: [],
             xAxisTicks: [],
             maxCount: 0,
+            localeMessages: null,
         };
 
         this.props.glContainer.on('resize', () => this.setState({
@@ -177,11 +185,16 @@ class APPCreatedAnalytics extends Widget {
         this.appCreatedHandleChange = this.appCreatedHandleChange.bind(this);
         this.subscribedToHandleChange = this.subscribedToHandleChange.bind(this);
         this.resetState = this.resetState.bind(this);
+        this.loadLocale = this.loadLocale.bind(this);
     }
 
     componentDidMount() {
-        const locale = (languageWithoutRegionCode || language || 'en');
-        this.setState({ localeMessages: defineMessages(localeJSON[locale]) || {} });
+        const locale = languageWithoutRegionCode || language;
+        this.loadLocale(locale).catch(() => {
+            this.loadLocale().catch(() => {
+                // TODO: Show error message.
+            });
+        });
 
         super.getWidgetConfiguration(this.props.widgetID)
             .then((message) => {
@@ -199,6 +212,25 @@ class APPCreatedAnalytics extends Widget {
 
     componentWillUnmount() {
         super.getWidgetChannelManager().unsubscribeWidget(this.props.id);
+    }
+
+    /**
+     * Load locale file.
+     * @param {string} locale Locale name
+     * @returns {Promise} Promise
+     * @memberof APPCreatedAnalytics
+     */
+    loadLocale(locale = 'en') {
+        return new Promise((resolve, reject) => {
+            Axios.get(`${window.contextPath}/public/extensions/widgets/APPCreatedAnalytics/locales/${locale}.json`)
+                .then((response) => {
+                    // eslint-disable-next-line global-require, import/no-dynamic-require
+                    addLocaleData(require(`react-intl/locale-data/${locale}`));
+                    this.setState({ localeMessages: defineMessages(response.data) });
+                    resolve();
+                })
+                .catch(error => reject(error));
+        });
     }
 
     /**
@@ -513,11 +545,13 @@ class APPCreatedAnalytics extends Widget {
 
     /**
      * Return the data for widget
-     * @returns {ReactElement} Render the data of APP Created Analytics widget
+     * @returns {ReactElement} Render the data of APIM App Created Analytics widget
      * @memberof APPCreatedAnalytics
      * */
     getDataChart() {
-        const { tableData, chartData } = this.state;
+        const {
+            tableData, chartData, xAxisTicks, maxCount,
+        } = this.state;
         const themeName = this.props.muiTheme.name;
 
         if (tableData.length !== 0 && chartData.length !== 0) {
@@ -557,7 +591,7 @@ class APPCreatedAnalytics extends Widget {
                                         },
                                     }}
                                     label='CREATED TIME'
-                                    tickValues={this.state.xAxisTicks}
+                                    tickValues={xAxisTicks}
                                     tickFormat={
                                         (x) => {
                                             return Moment(x).format('YY/MM/DD hh:mm');
@@ -589,7 +623,7 @@ class APPCreatedAnalytics extends Widget {
                                 />
                                 <VictoryAxis
                                     dependentAxis
-                                    domain={[1, this.state.maxCount]}
+                                    domain={[1, maxCount]}
                                     width={700}
                                     offsetX={50}
                                     orientation='left'
@@ -614,12 +648,12 @@ class APPCreatedAnalytics extends Widget {
                                     }}
                                 />
                                 <VictoryLine
-                                    data={this.state.chartData}
+                                    data={chartData}
                                     labels={d => d.label}
                                     width={700}
                                     domain={{
-                                        x: [this.state.xAxisTicks[0], this.state.xAxisTicks[this.state.xAxisTicks.length - 1]],
-                                        y: [1, this.state.maxCount],
+                                        x: [xAxisTicks[0], xAxisTicks[xAxisTicks.length - 1]],
+                                        y: [1, maxCount],
                                     }}
                                     scale={{ x: 'time', y: 'linear' }}
                                     standalone={false}
@@ -648,7 +682,7 @@ class APPCreatedAnalytics extends Widget {
                     </div>
                     <div style={this.styles.tableWrapper}>
                         <CustomTable
-                            tableData={this.state.tableData}
+                            tableData={tableData}
                         />
                         <Button
                             variant='contained'
@@ -693,7 +727,7 @@ class APPCreatedAnalytics extends Widget {
 
     /**
      * Return the content of APPCreatedAnalytics widget
-     * @returns {ReactElement} Render the content of APP Created Analytics widget
+     * @returns {ReactElement} Render the content of APIM App Created Analytics widget
      * @memberof APPCreatedAnalytics
      * */
     getAPPCount() {
@@ -794,56 +828,66 @@ class APPCreatedAnalytics extends Widget {
 
     /**
      * @inheritDoc
-     * @returns {ReactElement} Render the APP Created Analytics widget
+     * @returns {ReactElement} Render the APIM App Created Analytics widget
      * @memberof APPCreatedAnalytics
      */
     render() {
         const themeName = this.props.muiTheme.name;
-        const { localeMessages } = this.state;
+        const {
+            localeMessages, faultyProviderConfig, height,
+        } = this.state;
 
-        if (this.state.faultyProviderConfig === true) {
-            return (
-                <IntlProvider locale={language} messages={localeMessages}>
-                    <div
-                        style={{
-                            margin: 'auto',
-                            width: '50%',
-                            marginTop: '20%',
-                        }}
-                    >
-                        <Paper
-                            elevation={1}
+        if (localeMessages) {
+            if (faultyProviderConfig) {
+                return (
+                    <IntlProvider locale={languageWithoutRegionCode} messages={localeMessages}>
+                        <div
                             style={{
-                                padding: '5%',
-                                border: '2px solid #4555BB',
+                                margin: 'auto',
+                                width: '50%',
+                                marginTop: '20%',
                             }}
                         >
-                            <Typography variant='h5' component='h3'>
-                                <FormattedMessage id='config.error.heading' defaultMessage='Configuration Error !' />
-                            </Typography>
-                            <Typography component='p'>
-                                <FormattedMessage
-                                    id='config.error.body'
-                                    defaultMessage='Cannot fetch provider configuration for APP Created Analytics widget'
-                                />
-                            </Typography>
-                        </Paper>
-                    </div>
-                </IntlProvider>
-            );
+                            <Paper
+                                elevation={1}
+                                style={{
+                                    padding: '5%',
+                                    border: '2px solid #4555BB',
+                                }}
+                            >
+                                <Typography variant='h5' component='h3'>
+                                    <FormattedMessage id='config.error.heading' defaultMessage='Configuration Error !' />
+                                </Typography>
+                                <Typography component='p'>
+                                    <FormattedMessage
+                                        id='config.error.body'
+                                        defaultMessage='Cannot fetch provider configuration for APIM App Created Analytics widget'
+                                    />
+                                </Typography>
+                            </Paper>
+                        </div>
+                    </IntlProvider>
+                );
+            } else {
+                return (
+                    <IntlProvider locale={languageWithoutRegionCode} messages={localeMessages}>
+                        <MuiThemeProvider
+                            theme={themeName === 'dark' ? darkTheme : lightTheme}
+                        >
+                            <Scrollbars
+                                style={{ height }}
+                            >
+                                {this.getAPPCount()}
+                            </Scrollbars>
+                        </MuiThemeProvider>
+                    </IntlProvider>
+                );
+            }
         } else {
             return (
-                <IntlProvider locale={language} messages={localeMessages}>
-                    <MuiThemeProvider
-                        theme={themeName === 'dark' ? darkTheme : lightTheme}
-                    >
-                        <Scrollbars
-                            style={{ height: this.state.height }}
-                        >
-                            {this.getAPPCount()}
-                        </Scrollbars>
-                    </MuiThemeProvider>
-                </IntlProvider>
+                <div>
+                    <CircularProgress style={this.styles.loadingIcon} />
+                </div>
             );
         }
     }
