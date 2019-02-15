@@ -4,11 +4,11 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = {
     context: path.resolve(__dirname, './src'),
     entry: {
-        index: './APIOverallStats1.jsx',
+        index: './APIMOverallApiStats.jsx',
     },
     output: {
-        path: path.resolve(__dirname, './dist/APIOverallStats1'),
-        filename: 'APIOverallStats1.js',
+        path: path.resolve(__dirname, './dist/APIMOverallApiStats'),
+        filename: 'APIMOverallApiStats.js',
     },
     module: {
         loaders: [
