@@ -25,9 +25,12 @@ import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { VictoryPie, VictoryLegend, VictoryTooltip } from 'victory';
-import { defineMessages, IntlProvider, FormattedMessage } from 'react-intl';
-import localeJSON from './resources/locale.json';
+import Axios from 'axios';
+import {
+    addLocaleData, defineMessages, IntlProvider, FormattedMessage,
+} from 'react-intl';
 import CustomTable from './CustomTable';
 
 const darkTheme = createMuiTheme({
@@ -48,7 +51,7 @@ const lightTheme = createMuiTheme({
     },
 });
 
-const queryParamKey = 'apiCreators';
+const queryParamKey = 'appCreators';
 
 /**
  * Language
@@ -62,7 +65,7 @@ const language = (navigator.languages && navigator.languages[0]) || navigator.la
 const languageWithoutRegionCode = language.toLowerCase().split(/[_-]+/)[0];
 
 /**
- * Create React Component for Top APP Creators
+ * Create React Component for APIM Top App Creators
  * @class TopAPPCreators
  * @extends {Widget}
  */
@@ -98,15 +101,19 @@ class TopAPPCreators extends Widget {
                 marginRight: 8,
                 width: 200,
             },
+            loadingIcon: {
+                margin: 'auto',
+                display: 'block',
+            },
         };
 
         this.state = {
             width: this.props.glContainer.width,
             height: this.props.glContainer.height,
             data: [],
-            legenddata: [],
+            legendData: [],
             limit: 0,
-            localeMessages: {},
+            localeMessages: null,
         };
 
         this.props.glContainer.on('resize', () => this.setState({
@@ -117,11 +124,16 @@ class TopAPPCreators extends Widget {
         this.assembleQuery = this.assembleQuery.bind(this);
         this.handleDataReceived = this.handleDataReceived.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.loadLocale = this.loadLocale.bind(this);
     }
 
     componentDidMount() {
-        const locale = (languageWithoutRegionCode || language || 'en');
-        this.setState({ localeMessages: defineMessages(localeJSON[locale]) || {} });
+        const locale = languageWithoutRegionCode || language;
+        this.loadLocale(locale).catch(() => {
+            this.loadLocale().catch(() => {
+                // TODO: Show error message.
+            });
+        });
 
         super.getWidgetConfiguration(this.props.widgetID)
             .then((message) => {
@@ -139,6 +151,25 @@ class TopAPPCreators extends Widget {
 
     componentWillUnmount() {
         super.getWidgetChannelManager().unsubscribeWidget(this.props.id);
+    }
+
+    /**
+     * Load locale file.
+     * @param {string} locale Locale name
+     * @returns {Promise} Promise
+     * @memberof TopAPPCreators
+     */
+    loadLocale(locale = 'en') {
+        return new Promise((resolve, reject) => {
+            Axios.get(`${window.contextPath}/public/extensions/widgets/TopAPPCreators/locales/${locale}.json`)
+                .then((response) => {
+                    // eslint-disable-next-line global-require, import/no-dynamic-require
+                    addLocaleData(require(`react-intl/locale-data/${locale}`));
+                    this.setState({ localeMessages: defineMessages(response.data) });
+                    resolve();
+                })
+                .catch(error => reject(error));
+        });
     }
 
     /**
@@ -174,21 +205,13 @@ class TopAPPCreators extends Widget {
     handleDataReceived(message) {
         if (message.data) {
             const { limit } = this.state;
-            const legenddata = [];
-            const data = [];
-            let sum = 0;
-            let percentage = 0;
+            const legendData = [];
             message.data.forEach((dataUnit) => {
-                if (!legenddata.includes({ name: dataUnit[0] })) {
-                    legenddata.push({ name: dataUnit[0] });
+                if (!legendData.includes({ name: dataUnit[0] })) {
+                    legendData.push({ name: dataUnit[0] });
                 }
-                sum += dataUnit[1];
             });
-            message.data.forEach((dataUnit) => {
-                percentage = (dataUnit[1] / sum) * 100;
-                data.push([dataUnit[0], dataUnit[1], dataUnit[0] + ' : ' + percentage.toFixed(2) + '%']);
-            });
-            this.setState({ legenddata, data });
+            this.setState({ legendData, data: message.data });
             this.setQueryParam(limit);
         }
     }
@@ -286,7 +309,7 @@ class TopAPPCreators extends Widget {
                             data={this.state.data}
                             x={0}
                             y={1}
-                            labels={d => d[2]}
+                            labels={d => `${d[0]} : ${((d[1] / (_.sumBy(this.state.data, o => o[1]))) * 100).toFixed(2)}%`}
                         />
                         <VictoryLegend
                             standalone={false}
@@ -301,7 +324,7 @@ class TopAPPCreators extends Widget {
                                     fontSize: 25,
                                 },
                             }}
-                            data={this.state.legenddata}
+                            data={this.state.legendData}
                         />
                     </svg>
                     <CustomTable
@@ -314,56 +337,66 @@ class TopAPPCreators extends Widget {
 
     /**
      * @inheritDoc
-     * @returns {ReactElement} Render the Top APP Creators widget
+     * @returns {ReactElement} Render the APIM Top App Creators widget
      * @memberof TopAPPCreators
      */
     render() {
         const themeName = this.props.muiTheme.name;
-        const { localeMessages } = this.state;
+        const {
+            localeMessages, faultyProviderConfig, height,
+        } = this.state;
 
-        if (this.state.faultyProviderConfig === true) {
-            return (
-                <IntlProvider locale={language} messages={localeMessages}>
-                    <div
-                        style={{
-                            margin: 'auto',
-                            width: '50%',
-                            marginTop: '20%',
-                        }}
-                    >
-                        <Paper
-                            elevation={1}
+        if (localeMessages) {
+            if (faultyProviderConfig) {
+                return (
+                    <IntlProvider locale={languageWithoutRegionCode} messages={localeMessages}>
+                        <div
                             style={{
-                                padding: '5%',
-                                border: '2px solid #4555BB',
+                                margin: 'auto',
+                                width: '50%',
+                                marginTop: '20%',
                             }}
                         >
-                            <Typography variant='h5' component='h3'>
-                                <FormattedMessage id='config.error.heading' defaultMessage='Configuration Error !' />
-                            </Typography>
-                            <Typography component='p'>
-                                <FormattedMessage
-                                    id='config.error.body'
-                                    defaultMessage='Cannot fetch provider configuration for TOP APP CREATORS widget'
-                                />
-                            </Typography>
-                        </Paper>
-                    </div>
-                </IntlProvider>
-            );
+                            <Paper
+                                elevation={1}
+                                style={{
+                                    padding: '5%',
+                                    border: '2px solid #4555BB',
+                                }}
+                            >
+                                <Typography variant='h5' component='h3'>
+                                    <FormattedMessage id='config.error.heading' defaultMessage='Configuration Error !' />
+                                </Typography>
+                                <Typography component='p'>
+                                    <FormattedMessage
+                                        id='config.error.body'
+                                        defaultMessage='Cannot fetch provider configuration for APIM Top App Creators widget'
+                                    />
+                                </Typography>
+                            </Paper>
+                        </div>
+                    </IntlProvider>
+                );
+            } else {
+                return (
+                    <IntlProvider locale={languageWithoutRegionCode} messages={localeMessages}>
+                        <MuiThemeProvider
+                            theme={themeName === 'dark' ? darkTheme : lightTheme}
+                        >
+                            <Scrollbars
+                                style={{ height }}
+                            >
+                                {this.getAppCreators()}
+                            </Scrollbars>
+                        </MuiThemeProvider>
+                    </IntlProvider>
+                );
+            }
         } else {
             return (
-                <IntlProvider locale={language} messages={localeMessages}>
-                    <MuiThemeProvider
-                        theme={themeName === 'dark' ? darkTheme : lightTheme}
-                    >
-                        <Scrollbars
-                            style={{ height: this.state.height }}
-                        >
-                            {this.getAppCreators()}
-                        </Scrollbars>
-                    </MuiThemeProvider>
-                </IntlProvider>
+                <div>
+                    <CircularProgress style={this.styles.loadingIcon} />
+                </div>
             );
         }
     }

@@ -31,13 +31,27 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import FilterListIcon from '@material-ui/icons/FilterList';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Collapse from '@material-ui/core/Collapse';
 import { withStyles } from '@material-ui/core/styles';
-import { defineMessages, IntlProvider, FormattedMessage } from 'react-intl';
-import localeJSON from './resources/locale.json';
+import Axios from 'axios';
+import {
+    addLocaleData, defineMessages, IntlProvider, FormattedMessage,
+} from 'react-intl';
 import CustomTableHead from './CustomTableHead';
+
+/**
+ * Language
+ * @type {string}
+ */
+const language = (navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage;
+
+/**
+ * Language without region code
+ */
+const languageWithoutRegionCode = language.toLowerCase().split(/[_-]+/)[0];
 
 /**
  * Compare two values and return the result
@@ -81,19 +95,6 @@ function stableSort(array, cmp) {
 function getSorting(order, orderBy) {
     return order === 'desc' ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
 }
-
-/**
- * Language
- * @type {string}
- */
-const language = (navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage;
-
-/**
- * Language without region code
- */
-const languageWithoutRegionCode = language.toLowerCase().split(/[_-]+/)[0];
-const locale = (languageWithoutRegionCode || language || 'en');
-const localeMessages = defineMessages(localeJSON[locale]) || {};
 
 const toolbarStyles = theme => ({
     root: {
@@ -225,6 +226,10 @@ const styles = theme => ({
     tableWrapper: {
         overflowX: 'auto',
     },
+    loadingIcon: {
+        margin: 'auto',
+        display: 'block',
+    },
     paginationRoot: {
         color: theme.palette.text.secondary,
         fontSize: theme.typography.pxToRem(12),
@@ -267,16 +272,37 @@ const styles = theme => ({
  * Create React Component for Top APP Creators Table
  */
 class CustomTable extends React.Component {
-    state = {
-        data: [],
-        page: 0,
-        rowsPerPage: 5,
-        orderBy: 'appcount',
-        order: 'desc',
-        expanded: false,
-        filterColumn: 'creator',
-        query: '',
-    };
+    /**
+     * Creates an instance of CustomTable.
+     * @param {any} props @inheritDoc
+     * @memberof CustomTable
+     */
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            data: [],
+            page: 0,
+            rowsPerPage: 5,
+            orderBy: 'appcount',
+            order: 'desc',
+            expanded: false,
+            filterColumn: 'creator',
+            query: '',
+            localeMessages: null,
+        };
+
+        this.loadLocale = this.loadLocale.bind(this);
+    }
+
+    componentDidMount() {
+        const locale = languageWithoutRegionCode || language;
+        this.loadLocale(locale).catch(() => {
+            this.loadLocale().catch(() => {
+                // TODO: Show error message.
+            });
+        });
+    }
 
     handleRequestSort = (event, property) => {
         const { order, orderBy } = this.state;
@@ -308,12 +334,32 @@ class CustomTable extends React.Component {
     };
 
     /**
+     * Load locale file.
+     * @param {string} locale Locale name
+     * @returns {Promise} Promise
+     */
+    loadLocale(locale = 'en') {
+        return new Promise((resolve, reject) => {
+            Axios.get(`${window.contextPath}/public/extensions/widgets/TopAPPCreators/locales/${locale}.json`)
+                .then((response) => {
+                    // eslint-disable-next-line global-require, import/no-dynamic-require
+                    addLocaleData(require(`react-intl/locale-data/${locale}`));
+                    this.setState({ localeMessages: defineMessages(response.data) });
+                    resolve();
+                })
+                .catch(error => reject(error));
+        });
+    }
+
+    /**
      * Render the Custom Table
      * @return {ReactElement} customTable
      */
     render() {
         const { classes, tableData } = this.props;
-        const { query, expanded, filterColumn } = this.state;
+        const {
+            query, expanded, filterColumn, localeMessages,
+        } = this.state;
         let counter = 0;
         const dataNew = [];
         const lowerCaseQuery = query.toLowerCase();
@@ -330,85 +376,93 @@ class CustomTable extends React.Component {
         } = this.state;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
-        return (
-            <IntlProvider locale={language} messages={localeMessages}>
-                <Paper className={classes.root}>
-                    <CustomTableToolbar
-                        expanded={expanded}
-                        filterColumn={filterColumn}
-                        query={query}
-                        handleExpandClick={this.handleExpandClick}
-                        handleColumnSelect={this.handleColumnSelect}
-                        handleQueryChange={this.handleQueryChange}
-                    />
-                    <div className={classes.tableWrapper}>
-                        <Table className={classes.table} aria-labelledby='tableTitle'>
-                            <CustomTableHead
-                                order={order}
-                                orderBy={orderBy}
-                                onRequestSort={this.handleRequestSort}
-                            />
-                            <TableBody>
-                                {stableSort(data, getSorting(order, orderBy))
-                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                    .map((n) => {
-                                        return (
-                                            <TableRow
-                                                hover
-                                                tabIndex={-1}
-                                                key={n.id}
-                                            >
-                                                <TableCell component='th' scope='row'>
-                                                    {n.creator}
-                                                </TableCell>
-                                                <TableCell
-                                                    numeric
-                                                    style={{
-                                                        paddingRight: '10%',
-                                                    }}
+        if (localeMessages) {
+            return (
+                <IntlProvider locale={languageWithoutRegionCode} messages={localeMessages}>
+                    <Paper className={classes.root}>
+                        <CustomTableToolbar
+                            expanded={expanded}
+                            filterColumn={filterColumn}
+                            query={query}
+                            handleExpandClick={this.handleExpandClick}
+                            handleColumnSelect={this.handleColumnSelect}
+                            handleQueryChange={this.handleQueryChange}
+                        />
+                        <div className={classes.tableWrapper}>
+                            <Table className={classes.table} aria-labelledby='tableTitle'>
+                                <CustomTableHead
+                                    order={order}
+                                    orderBy={orderBy}
+                                    onRequestSort={this.handleRequestSort}
+                                />
+                                <TableBody>
+                                    {stableSort(data, getSorting(order, orderBy))
+                                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                        .map((n) => {
+                                            return (
+                                                <TableRow
+                                                    hover
+                                                    tabIndex={-1}
+                                                    key={n.id}
                                                 >
-                                                    {n.appcount}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                {emptyRows > 0 && (
-                                    <TableRow style={{ height: 49 * emptyRows }}>
-                                        <TableCell colSpan={6} />
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                    <TablePagination
-                        rowsPerPageOptions={[5, 10, 20, 25, 50, 100]}
-                        component='div'
-                        count={data.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        backIconButtonProps={{
-                            'aria-label': 'Previous Page',
-                        }}
-                        nextIconButtonProps={{
-                            'aria-label': 'Next Page',
-                        }}
-                        onChangePage={this.handleChangePage}
-                        onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                        classes={{
-                            root: classes.paginationRoot,
-                            toolbar: classes.paginationToolbar,
-                            caption: classes.paginationCaption,
-                            selectRoot: classes.paginationSelectRoot,
-                            select: classes.paginationSelect,
-                            selectIcon: classes.paginationSelectIcon,
-                            input: classes.paginationInput,
-                            menuItem: classes.paginationMenuItem,
-                            actions: classes.paginationActions,
-                        }}
-                    />
-                </Paper>
-            </IntlProvider>
-        );
+                                                    <TableCell component='th' scope='row'>
+                                                        {n.creator}
+                                                    </TableCell>
+                                                    <TableCell
+                                                        numeric
+                                                        style={{
+                                                            paddingRight: '10%',
+                                                        }}
+                                                    >
+                                                        {n.appcount}
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    {emptyRows > 0 && (
+                                        <TableRow style={{ height: 49 * emptyRows }}>
+                                            <TableCell colSpan={6} />
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <TablePagination
+                            rowsPerPageOptions={[5, 10, 20, 25, 50, 100]}
+                            component='div'
+                            count={data.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            backIconButtonProps={{
+                                'aria-label': 'Previous Page',
+                            }}
+                            nextIconButtonProps={{
+                                'aria-label': 'Next Page',
+                            }}
+                            onChangePage={this.handleChangePage}
+                            onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                            classes={{
+                                root: classes.paginationRoot,
+                                toolbar: classes.paginationToolbar,
+                                caption: classes.paginationCaption,
+                                selectRoot: classes.paginationSelectRoot,
+                                select: classes.paginationSelect,
+                                selectIcon: classes.paginationSelectIcon,
+                                input: classes.paginationInput,
+                                menuItem: classes.paginationMenuItem,
+                                actions: classes.paginationActions,
+                            }}
+                        />
+                    </Paper>
+                </IntlProvider>
+            );
+        } else {
+            return (
+                <div>
+                    <CircularProgress className={classes.loadingIcon} />
+                </div>
+            );
+        }
     }
 }
 
