@@ -23,18 +23,14 @@ import PropTypes from 'prop-types';
 
 /**
  * Create React Component for Custom Icon
- * @function CustomIcon
+ * @function ApiIcon
  * @param {object} props - strokeColor, width, height, style
  * @returns {ReactElement} Render the Custom Icon
  */
-export default function CustomIcon(props) {
-    let {
+export default function ApiIcon(props) {
+    const {
         strokeColor, width, height, style,
     } = props;
-    strokeColor = strokeColor !== undefined ? strokeColor : '#8b8e95';
-    width = width !== undefined ? width : 32;
-    height = height !== undefined ? height : 32;
-    style = style !== undefined ? style : '';
 
     return (
         <svg
@@ -76,7 +72,7 @@ export default function CustomIcon(props) {
     );
 }
 
-CustomIcon.propTypes = {
+ApiIcon.propTypes = {
     strokeColor: PropTypes.string.isRequired,
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
